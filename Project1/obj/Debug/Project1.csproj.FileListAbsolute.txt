@@ -1,0 +1,12 @@
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\bin\Debug\Project1.exe.config
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\bin\Debug\Project1.exe
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\bin\Debug\Project1.pdb
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\obj\Debug\Project1.exe
+d:\dz-skanding\visual studio 2013\Projects\Project1\Project1\obj\Debug\Project1.pdb
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\bin\Debug\Project1.exe.config
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\obj\Debug\Project1.exe
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\obj\Debug\Project1.pdb
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\bin\Debug\Project1.exe
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\bin\Debug\Project1.pdb
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
