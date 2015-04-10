@@ -41,8 +41,10 @@ namespace Tekla.Technology.Akit.UserScript
             // 2. in excel delete all columns but 'Dimension', 'Reserveret' and 'Kvalitet'. This columns should be placed in A, B and C column positions,
             // 3. go through the rows and:
             //       - delete the rows with missing material,
+            //       - repair the rows with corrupt material ('275' -> 'S275')
             //       - delete or repair rows with corrupt profile values (look for stuff like: '12x150', '100*5', '15'). Correct formatting is: 'width thickness'.
-            // 4. save the file as .csv delimited with semicolon (you can change the delimiter few lines above - delimiterString)
+            // 4. save the file as 'stock list.csv' (default delimeter is semicolon. You can change the delimiter in 'delimiterString' variable)
+            // 5. save the file in the location set with 'csvLocation' variable.
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // preparation of variables                                                                                                                                                                       
@@ -298,7 +300,8 @@ namespace Tekla.Technology.Akit.UserScript
                     {
                         String line = sr.ReadLine();
 
-                        // skip first line
+                        // skip first line - headers of columns
+                        // this functionality could be implemented better
                         if (i > 0)
                         {
                             List<string> lineList = new List<string>();
