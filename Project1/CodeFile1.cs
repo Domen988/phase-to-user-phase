@@ -25,7 +25,7 @@ namespace Tekla.Technology.Akit.UserScript
             string csvLocation = "f:/stock list.csv";
 
             // <profile list>.csv - delimeter
-            string delimeterString = ";";
+            string delimiterString = ";";
 
             // list of part names for FL-PL profile check
             string[] partNamesToCheckArray = { "Afstivning", "(Afstivning)", "Vind-X-Plade", "(Vind-X-Plade)", "Løsdele", "(Løsdele)", "Plade", "(Plade)", "Fladstål", "(Fladstål)", "Flange", "(Flange)" };
@@ -34,9 +34,19 @@ namespace Tekla.Technology.Akit.UserScript
             string[] partNamesToSwapArray = { "Plade", "(Plade)", "Fladstål", "(Fladstål)" };
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-          
+            // stock list.csv
+            //
+            // Instructions for preparation:
+            // 1. you need original DS stock list,
+            // 2. in excel delete all columns but 'Dimension', 'Reserveret' and 'Kvalitet'. This columns should be placed in A, B and C column positions,
+            // 3. go through the rows and:
+            //       - delete the rows with missing material,
+            //       - delete or repair rows with corrupt profile values (look for stuff like: '12x150', '100*5', '15'). Correct formatting is: 'width thickness'.
+            // 4. save the file as .csv delimited with semicolon (you can change the delimiter few lines above - delimiterString)
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
             // preparation of variables                                                                                                                                                                       
-            char delimeter = delimeterString[0];
+            char delimeter = delimiterString[0];
 
             List<string> partNamesToCheck = new List<string>();
             partNamesToCheck.AddRange(partNamesToCheckArray);
@@ -287,42 +297,49 @@ namespace Tekla.Technology.Akit.UserScript
                     while (sr.Peek() >= 0)
                     {
                         String line = sr.ReadLine();
-                        List<string> lineList = new List<string>();
 
-                        List<string> profileData = new List<string>();
-
-                        // function returns width and thickness of the profile
-                        profileData = profileCheck(line.Split(delimeter)[0]);
-
-                        // go on only if profileData length is 2 (profile string from .csv is legit)
-                        if (profileData.Count == 2)
+                        // skip first line
+                        if (i > 0)
                         {
-                            bool isReserved;
+                            List<string> lineList = new List<string>();
 
-                            // check if this profile is reserved
-                            isReserved = reservationCheck(line.Split(delimeter)[1]);
+                            List<string> profileData = new List<string>();
 
-                            if (isReserved == false)
+                            // function returns width and thickness of the profile
+                            profileData = profileCheck(line.Split(delimeter)[0]);
+
+                            // go on only if profileData length is 2 (profile string from .csv is legit)
+                            if (profileData.Count == 2)
                             {
-                                // check if material string is not empty
-                                if (line.Split(delimeter)[2].Length != 0)
-                                {
-                                    lineList.Add(profileData[0]);
-                                    lineList.Add(profileData[1]);
-                                    lineList.Add(line.Split(delimeter)[2]);
+                                bool isReserved;
 
-                                    // add to profile attributes to profileList
-                                    profileList.Add(lineList);
-                                }
-                                else
+                                // check if this profile is reserved
+                                isReserved = reservationCheck(line.Split(delimeter)[1]);
+
+                                if (isReserved == false)
                                 {
-                                    MessageBox.Show("Illegitimate profile line\n\nMaterial in line: \n" + (i + 1).ToString(), "FLPL checker");
+                                    // check if material string is not empty
+                                    if (line.Split(delimeter)[2].Length != 0)
+                                    {
+                                        lineList.Add(profileData[0]);
+                                        lineList.Add(profileData[1]);
+                                        lineList.Add(line.Split(delimeter)[2]);
+
+                                        // add to profile attributes to profileList
+                                        profileList.Add(lineList);
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Illegitimate profile line\n\nMaterial in line: \n" + (i + 1).ToString(), "FLPL checker");
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Illegitimate profile line\n\nProfile in line: \n" + (i + 1).ToString(), "FLPL checker");
+                            else
+                            {
+                                MessageBox.Show("Illegitimate profile line\n\nProfile in line: \n" + (i + 1).ToString(), "FLPL checker");
+                                break;
+                            }
                         }
 
                         i += 1;

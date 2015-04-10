@@ -10,3 +10,9 @@ F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\obj\Debug\Project1.
 F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\bin\Debug\Project1.exe
 F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\bin\Debug\Project1.pdb
 F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\bin\Debug\Project1.exe.config
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\obj\Debug\Project1.exe
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\obj\Debug\Project1.pdb
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\bin\Debug\Project1.exe
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\bin\Debug\Project1.pdb
+F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
