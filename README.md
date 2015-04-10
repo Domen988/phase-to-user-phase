@@ -9,4 +9,4 @@ Built for Skanding to use with DS stock system.
 Built as a Tekla macro. Copy file 'CodeFile1.cs' (found in folder Project1) to your 
 > Tekla installation folder -> Environments -> Common -> macros -> modelling
 
-Create 'Stock list.csv' and point to it in the 'CodeFile1.cs' (line 25).
+Create 'stock list.csv' and point to it in the 'CodeFile1.cs' (line 25).
