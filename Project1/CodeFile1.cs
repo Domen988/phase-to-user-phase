@@ -46,6 +46,10 @@ namespace Tekla.Technology.Akit.UserScript
             // 4. save the file as 'stock list.csv' (default delimeter is semicolon. You can change the delimiter in 'delimiterString' variable)
             // 5. save the file in the location set with 'csvLocation' variable.
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            // Ideas for improvements
+            // - add refresh selection button to message box 'Selected objects will be modified
+            // - add 'working' icon to mouse
+            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // preparation of variables                                                                                                                                                                       
             char delimeter = delimiterString[0];
@@ -125,6 +129,7 @@ namespace Tekla.Technology.Akit.UserScript
                     double objectWidth = -1.0;
                     double objectHeight = -1.0;
                     double objectLength = -1.0;
+
                     currentObject.GetReportProperty("MATERIAL", ref objectMaterial);
                     currentObject.GetReportProperty("WIDTH", ref objectWidth);
                     currentObject.GetReportProperty("HEIGHT", ref objectHeight);
