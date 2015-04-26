@@ -8,6 +8,14 @@ using System.Collections;
 
 using Tekla.Structures;
 using Tekla.Structures.Model;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// This macro is used to copy the name of object's phase to user phase attribute of an object.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Ideas for improvements
+// - it's silly that we read the name of the phase for the user phase, 
+//     + we could use a custom phase property for setting the user phase number
+//     + check out: http://teklastructures.support.tekla.com/200/en/mod_custom_phase_properties
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 namespace Tekla.Technology.Akit.UserScript
 {     
@@ -21,34 +29,6 @@ namespace Tekla.Technology.Akit.UserScript
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////            
             // Settings
 
-            // <profile list>.csv - file location and name
-            string csvLocation = "f:/stock list.csv";
-
-            // <profile list>.csv - delimeter
-            string delimiterString = ";";
-
-            // list of part names for FL-PL profile check
-            string[] partNamesToCheckArray = { "Afstivning", "(Afstivning)", "Vind-X-Plade", "(Vind-X-Plade)", "Løsdele", "(Løsdele)", "Plade", "(Plade)", "Fladstål", "(Fladstål)", "Flange", "(Flange)" };
-
-            // list of part names to include in name AND prefix swaping (should be Plade and Fladstal)
-            string[] partNamesToSwapArray = { "Plade", "(Plade)", "Fladstål", "(Fladstål)" };
-
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // stock list.csv
-            //
-            // Instructions for preparation:
-            // 1. you need original DS stock list,
-            // 2. in excel delete all columns but 'Dimension', 'Reserveret' and 'Kvalitet'. This columns should be placed in A, B and C column positions,
-            // 3. go through the rows and:
-            //       - delete the rows with missing material,
-            //       - repair the rows with corrupt material ('275' -> 'S275')
-            //       - delete or repair rows with corrupt profile values (look for stuff like: '12x150', '100*5', '15'). Correct formatting is: 'width thickness'.
-            // 4. save the file as 'stock list.csv' (default delimeter is semicolon. You can change the delimiter in 'delimiterString' variable)
-            // 5. save the file in the location set with 'csvLocation' variable.
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-            // Ideas for improvements
-            // - add refresh selection button to message box 'Selected objects will be modified
-            // - add 'working' icon to mouse
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
             // preparation of variables                                                                                                                                                                       
