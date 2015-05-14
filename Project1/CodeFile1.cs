@@ -9,10 +9,10 @@ using System.Collections;
 using Tekla.Structures;
 using Tekla.Structures.Model;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// This macro is used to copy the name of object's phase to user phase attribute of an object.
+// This macro is used to copy the comment of object's phase to user phase attribute of an object.
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Ideas for improvements
-// - it's silly that we read the name of the phase for the user phase, 
+// - it's kind of silly that we read the comment of the phase for the user phase, 
 //     + we could use a custom phase property for setting the user phase number
 //     + check out: http://teklastructures.support.tekla.com/200/en/mod_custom_phase_properties
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -20,7 +20,7 @@ using Tekla.Structures.Model;
 namespace Tekla.Technology.Akit.UserScript
 {     
     public class Script
-    {    
+    {
         // to work in Visual Studio uncomment next line:
 		public static void Main()
         // to use this code as Tekla macro uncomment next line:
@@ -30,23 +30,6 @@ namespace Tekla.Technology.Akit.UserScript
             // Settings
 
             ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-            // preparation of variables                                                                                                                                                                       
-            char delimeter = delimiterString[0];
-
-            List<string> partNamesToCheck = new List<string>();
-            partNamesToCheck.AddRange(partNamesToCheckArray);
-
-            List<string> partNamesToSwap = new List<string>();
-            partNamesToSwap.AddRange(partNamesToSwapArray);
-
-            // Profile list - profiles with attributes (width, thickness, material)
-            // if profile is reserved it does not go in this list
-            List<List<string>> profileList = new List<List<string>>();
-            profileList = csvReader(csvLocation, delimeter);
-
-            // if clause to exit if csvReader didn't succeed
-            if ( profileList.Count == 0 ) return;
 
             Model Model = new Model();
 
@@ -60,7 +43,7 @@ namespace Tekla.Technology.Akit.UserScript
             // =======================================================================================
             // dialog for object selection
             DialogResult dr = new DialogResult();
-            mainForm form = new mainForm();
+            mainForm form = new mainForm("Set user phase for:", "All", "Selected");
             dr = form.ShowDialog();
             if (dr == DialogResult.Yes)     // 'Yes' is used for all objects
             {
@@ -82,116 +65,20 @@ namespace Tekla.Technology.Akit.UserScript
             while (SelectedObjects.MoveNext())
             {
                 var currentObject = SelectedObjects.Current;
-                var nameOfObject = "";
-                var profileOfObject = "";
-                var prefixAssemblyOfObject = "";
-                var prefixPartOfObject = "";
-                bool isFlatProfile = false;
+                var currObjPhaseComment = "";
+                var currObjUserPhase = "";
+                
+                Phase currObjPhase = new Phase();
 
-                // get name of the object
-                currentObject.GetReportProperty("NAME", ref nameOfObject);
+                currentObject.GetPhase(out currObjPhase);
+                // phase comment gets copied to user phase
+                currObjPhaseComment = currObjPhase.PhaseComment;
+                currentObject.GetUserProperty("USER_PHASE", ref currObjUserPhase);
 
-                // get the profile of the object
-                currentObject.GetReportProperty("PROFILE", ref profileOfObject);
-
-                // get the prefix of the object
-                currentObject.GetReportProperty("ASSEMBLY_DEFAULT_PREFIX", ref prefixAssemblyOfObject);
-                currentObject.GetReportProperty("PART_PREFIX", ref prefixPartOfObject);
-
-                // check if profile is flat profile
-                if (profileOfObject.StartsWith("FL") || profileOfObject.StartsWith("PL")) isFlatProfile = true;
-
-                // if name is contained in the list of parts to check and profile is a flat profile go in
-                if (partNamesToCheck.Contains(nameOfObject) && isFlatProfile)
+                if (currObjUserPhase != currObjPhaseComment)
                 {
-                    // variables
-                    string objectMaterial = "";
-                    double objectWidth = -1.0;
-                    double objectHeight = -1.0;
-                    double objectLength = -1.0;
-
-                    currentObject.GetReportProperty("MATERIAL", ref objectMaterial);
-                    currentObject.GetReportProperty("WIDTH", ref objectWidth);
-                    currentObject.GetReportProperty("HEIGHT", ref objectHeight);
-                    currentObject.GetReportProperty("LENGTH", ref objectLength);
-
-                    // check if profile is in stock list
-                    bool inStock = false;
-                    inStock = FLCheck(profileList, objectMaterial, objectWidth, objectHeight, objectLength);
-
-                    // check how profile should be changed
-                    bool changeToFL = false;
-                    bool changeToPL = false;
-                    if (inStock && profileOfObject.StartsWith("PL")) changeToFL = true;
-                    if (!inStock && profileOfObject.StartsWith("FL")) changeToPL = true;
-
-
-                    // check how name should be changed
-                    bool changeToFladstal = false;
-                    bool changeToPlade = false;
-
-                    // this is used to change prefixes
-                    bool changeToF = false;     
-                    bool changeToC = false;
-                    if (partNamesToSwap.Contains(nameOfObject))
-                    {
-                        if (inStock && nameOfObject.Replace("(", "").Replace(")", "") == "Plade") changeToFladstal = true;
-                        if (!inStock && nameOfObject.Replace("(", "").Replace(")", "") == "Fladstål") changeToPlade = true;
-                        if (inStock && (prefixPartOfObject != "F" || prefixAssemblyOfObject != "f")) changeToF = true;
-                        if (!inStock && (prefixPartOfObject != "C" || prefixAssemblyOfObject != "c")) changeToC = true;
-                    }
-
-                    // Functionality for changing the atributes is doubled for beams and plates.
-                    // Could this be done in one clause?
-                    Beam beam = SelectedObjects.Current as Beam;
-                    if (beam != null)
-                    {                       
-                        if (changeToFL) beam.Profile.ProfileString = "FL" + beam.Profile.ProfileString.ToString().Remove(0, 2);
-                        if (changeToPL) beam.Profile.ProfileString = "PL" + beam.Profile.ProfileString.ToString().Remove(0, 2);
-                        if (changeToFladstal) beam.Name = "Fladstål";
-                        if (changeToF)
-                        {
-                            beam.AssemblyNumber.Prefix = "f";
-                            beam.PartNumber.Prefix = "F";
-                        }
-                        if (changeToPlade) beam.Name = "Plade";
-                        if (changeToC)
-                        {
-                            beam.AssemblyNumber.Prefix = "c";
-                            beam.PartNumber.Prefix = "C";
-                        }
-
-                        // add parts to the list of modified parts
-                        if (changeToFL || changeToPL || changeToFladstal || changeToPlade || changeToC || changeToF)
-                        {
-                            partList.Add(beam);
-                        }
-                    }
-
-                    ContourPlate plate = SelectedObjects.Current as ContourPlate;
-                    if (plate != null)
-                    {
-                        if (changeToFL) plate.Profile.ProfileString = "FL" + plate.Profile.ProfileString.ToString().Remove(0, 2);
-                        if (changeToPL) plate.Profile.ProfileString = "PL" + plate.Profile.ProfileString.ToString().Remove(0, 2);
-                        if (changeToFladstal) plate.Name = "Fladstål";
-                        if (changeToF)
-                        {
-                            plate.AssemblyNumber.Prefix = "f";
-                            plate.PartNumber.Prefix = "F";
-                        }
-                        if (changeToPlade) plate.Name = "Plade";
-                        if (changeToC)
-                        {
-                            plate.AssemblyNumber.Prefix = "c";
-                            plate.PartNumber.Prefix = "C";
-                        }
-
-                        // add parts to the list of modified parts
-                        if (changeToFL || changeToPL || changeToFladstal || changeToPlade)
-                        {
-                            partList.Add(plate);
-                        }
-                    }
+                    //currentObject.SetUserProperty("USER_PHASE", currObjPhaseComment);
+                    partList.Add(currentObject);
                 }
             }
             
@@ -207,8 +94,14 @@ namespace Tekla.Technology.Akit.UserScript
             if (partList.Count != 0)
             {
                 // confirm modification
-                DialogResult dialogResult = MessageBox.Show(new Form { TopMost = true }, "Selected objects will be modified.", "FLPL checker", MessageBoxButtons.OKCancel);
-                if (dialogResult == DialogResult.OK)
+                DialogResult drConfirmation = new DialogResult();
+                mainForm formConfirmation = new mainForm("Selected objects will be modified", "Refresh", "Ok");
+                drConfirmation = formConfirmation.ShowDialog();
+                if (drConfirmation == DialogResult.Yes)     // 'Yes' is used to refresh selection
+                {
+                    mos.Select(partList);
+                }
+                else if (drConfirmation == DialogResult.No) // 'No' is used to confirm 
                 {
                     // if OK, then go through list and modify each part
                     Tekla.Structures.Model.ModelObjectEnumerator selObjEnum = Model.GetModelObjectSelector().GetAllObjectsWithType(ModelObject.ModelObjectEnum.CONTOURPLATE);
@@ -216,32 +109,34 @@ namespace Tekla.Technology.Akit.UserScript
 
                     // modify only objects that are in part list for modification and in current selection
                     while (selObjEnum.MoveNext())
-                    {   
+                    {
                         foreach (var part in partList)
                         {
                             Beam beam = part as Beam;
-                            if (beam != null && selObjEnum.Current.Identifier.ToString() == beam.Identifier.ToString())
-                            {
-                                if (!beam.Modify()) 
-                                {
-                                    errCount++;
-                                }
-                                else 
-                                {
-                                    modCount++;
-                                }
-                            }
-
                             ContourPlate plate = part as ContourPlate;
-                            if (plate != null && selObjEnum.Current.Identifier.ToString() == plate.Identifier.ToString())
+                            if (beam != null && selObjEnum.Current.Identifier.ToString() == beam.Identifier.ToString() || plate != null && selObjEnum.Current.Identifier.ToString() == plate.Identifier.ToString())
                             {
-                                if (!plate.Modify()) 
+                                try
+                                {
+                                    var currentObject = selObjEnum.Current;
+                                    var currObjPhaseComment = "";
+                                    var currObjUserPhase = "";
+                                    Phase currObjPhase = new Phase();
+
+                                    currentObject.GetPhase(out currObjPhase);
+                                    // phase comment gets copied to user phase
+                                    currObjPhaseComment = currObjPhase.PhaseComment;
+                                    currentObject.GetUserProperty("USER_PHASE", ref currObjUserPhase);
+
+                                    if (currObjUserPhase != currObjPhaseComment)
+                                    {
+                                        currentObject.SetUserProperty("USER_PHASE", currObjPhaseComment);
+                                    }
+                                    modCount++;
+                                }
+                                catch 
                                 {
                                     errCount++;
-                                }
-                                else 
-                                {
-                                    modCount++;
                                 }
                             }
                         }
@@ -255,175 +150,22 @@ namespace Tekla.Technology.Akit.UserScript
                         MessageBox.Show("# of changed objects:\n" + modCount, "FLPL checker");
                     }
                 }
-                else if (dialogResult == DialogResult.Cancel)
+                else
                 {
                     return;
                 }
             }
             else
             {
-                MessageBox.Show("No parts to modifiy found.", "FLPL checker");
+                MessageBox.Show("No parts to modifiy found.", Globals.appName);
             }
         }
+    }
 
-        /// <summary>
-        /// reads .csv file and returns a list of profiles with ("width", "thickness", "material"). Skip if profile is reserved.
-        /// </summary>
-        /// <param name="csvLocation"></param>
-        /// <param name="delimeter"></param>
-        /// <returns></returns>
-        public static List<List<string>> csvReader(string csvLocation, char delimeter)
-        {
-            List<List<string>> profileList = new List<List<string>>();
-
-            try
-            {
-                using (StreamReader sr = new StreamReader(csvLocation))
-                {
-                    int i = 0;
-                    while (sr.Peek() >= 0)
-                    {
-                        String line = sr.ReadLine();
-
-                        // skip first line - headers of columns
-                        // this functionality could be implemented better
-                        if (i > 0)
-                        {
-                            List<string> lineList = new List<string>();
-
-                            List<string> profileData = new List<string>();
-
-                            // function returns width and thickness of the profile
-                            profileData = profileCheck(line.Split(delimeter)[0]);
-
-                            // go on only if profileData length is 2 (profile string from .csv is legit)
-                            if (profileData.Count == 2)
-                            {
-                                bool isReserved;
-
-                                // check if this profile is reserved
-                                isReserved = reservationCheck(line.Split(delimeter)[1]);
-
-                                if (isReserved == false)
-                                {
-                                    // check if material string is not empty
-                                    if (line.Split(delimeter)[2].Length != 0)
-                                    {
-                                        lineList.Add(profileData[0]);
-                                        lineList.Add(profileData[1]);
-                                        lineList.Add(line.Split(delimeter)[2]);
-
-                                        // add to profile attributes to profileList
-                                        profileList.Add(lineList);
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("Illegitimate profile line\n\nMaterial in line: \n" + (i + 1).ToString(), "FLPL checker");
-                                        break;
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Illegitimate profile line\n\nProfile in line: \n" + (i + 1).ToString(), "FLPL checker");
-                                break;
-                            }
-                        }
-
-                        i += 1;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Could not find stock list in location:\n" + csvLocation + "\n-----------------------------------------------------------------------------------\n" + e.ToString(), "FLPL checker");
-            }
-
-            return profileList;
-        }
-
-        /// <summary>
-        /// check profile string from .csv if it is legit and return width and thickness
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <returns></returns> returns a list (width, thickness)
-        public static List<string> profileCheck(string profile)
-        {
-            // set delimeter for the profile string
-            string delimeterString = " ";
-            char delimeter = delimeterString[0];
-
-            // declare list and variables
-            List<string> profileData = new List<string>();
-            string width = "";
-            string thickness = "";
-
-            // if string has delimeter inside take it, if not ignore this .csv line
-            if (profile.Split(delimeter).Length == 2)
-            {
-                width = profile.Split(delimeter)[0];
-                thickness = profile.Split(delimeter)[1];
-
-                // add profile data to list
-                profileData.Add(width);
-                profileData.Add(thickness);
-            }
-            return profileData;
-        }
-
-        /// <summary>
-        /// check reserved string from .csv if it is not empty
-        /// </summary>
-        /// <param name="profile"></param>
-        /// <returns></returns> returns a bool - false if not reserved
-        public static bool reservationCheck(string reservation)
-        {
-            bool isReserved = false;
-
-            // if string is not empty we should ignore this .csv line
-            if (reservation.Length != 0)
-            {
-                isReserved = true;
-            }
-            return isReserved;
-        }
-
-        /// <summary>
-        /// checks if profile is in profile list. If yes, returns bool=true
-        /// </summary>
-        /// <param name="objectMaterial"></param>
-        /// <param name="objectWidth"></param>
-        /// <param name="objectHeight"></param>
-        /// <param name="objectLength"></param>
-        /// <returns></returns>
-        public static bool FLCheck(List<List<string>> profileList, string objectMaterial, double objectWidth, double objectHeight, double objectLength)
-        {
-            bool isFL = false;
-
-            // round doubles to whole values
-            objectWidth = Math.Round(objectWidth, 0, MidpointRounding.AwayFromZero);
-            objectHeight = Math.Round(objectHeight, 0, MidpointRounding.AwayFromZero);
-            objectLength = Math.Round(objectLength, 0, MidpointRounding.AwayFromZero);
-
-            foreach (List<string> profileLine in profileList)
-            {
-                // check if material of current object starts with material string from .csv (e.g.: "S275JR", "S275")
-                if (objectMaterial.StartsWith(profileLine[2]))
-                {
-                    // check for matching thickness
-                    if (profileLine[1] == objectWidth.ToString())
-                    {
-                        // check if 'Length' of 'Height' of current object matches width from profile list ('Length' and 'Height' as Tekla report properties)
-                        if (profileLine[0] == objectLength.ToString() || profileLine[0] == objectHeight.ToString())
-                        {
-                            isFL = true;
-                            break;
-                        }
-                    }
-                }
-            }
-            return isFL;
-        }
+    public static class Globals
+    {
+        public const String appName = "Phase to user phase"; // Modifiable in Code
+        public const String versionDate = "V 1.0 / 29.4.2015 / zagar.domen@gmail.com";
     }
 
     /// <summary>
@@ -433,8 +175,8 @@ namespace Tekla.Technology.Akit.UserScript
     public class mainForm : Form
     {
         private System.Windows.Forms.Label labelMyForm;
-        private System.Windows.Forms.Button buttonAll;
-        private System.Windows.Forms.Button buttonSelected;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Button buttonCancel;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -449,12 +191,12 @@ namespace Tekla.Technology.Akit.UserScript
             this.labelMyForm.Text = "Are you sure you want to… ?";
         }
 
-        private void buttonAll_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Yes;
         }
 
-        private void buttonSelected_Click(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)
         {
             this.DialogResult = DialogResult.No;
         }
@@ -464,39 +206,57 @@ namespace Tekla.Technology.Akit.UserScript
             this.DialogResult = DialogResult.Cancel;
         }
 
-        public mainForm()
+        private void button3_Click(object sender, EventArgs e)
         {
-            InitializeComponent();
+            this.DialogResult = DialogResult.None;
         }
 
-        private void InitializeComponent()
+        // mainForm is created with three parameters: question text, button 1 text, button 2 text
+        // third button is always cancel
+        public mainForm(string formMessage, string button1text, string button2text)
+        {
+            InitializeComponent(formMessage, button1text, button2text);
+        }
+
+        private void InitializeComponent(string formMessage, string button1text, string button2text)
         {
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
-            this.buttonAll = new System.Windows.Forms.Button();
-            this.buttonSelected = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
             this.buttonCancel = new System.Windows.Forms.Button();
             this.SuspendLayout();
             
-            // buttonAll
-            this.buttonAll.Location = new System.Drawing.Point(13, 38);
-            this.buttonAll.Name = "buttonAll";
-            this.buttonAll.Size = new System.Drawing.Size(75, 23);
-            this.buttonAll.TabIndex = 0;
-            this.buttonAll.Text = "All";
-            this.buttonAll.UseVisualStyleBackColor = true;
-            this.buttonAll.DialogResult = System.Windows.Forms.DialogResult.Yes;
-            this.buttonAll.Click += new System.EventHandler(this.buttonAll_Click);
+            // button1
+            this.button1.Location = new System.Drawing.Point(13, 38);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(75, 23);
+            this.button1.TabIndex = 0;
+            this.button1.Text = button1text;
+            this.button1.UseVisualStyleBackColor = true;
+           /*
+            if (button1text == "Refresh")
+            {
+                this.button1.DialogResult = System.Windows.Forms.DialogResult.None;
+                this.button1.Click += new System.EventHandler(this.button3_Click);
+            }
+            else
+            */
+            {
+                this.button1.DialogResult = System.Windows.Forms.DialogResult.Yes;
+                this.button1.Click += new System.EventHandler(this.button1_Click);
+            }
+           // this.button1.Click += new System.EventHandler(this.button1_Click);
 
-            // buttonSelected
-            this.buttonSelected.Location = new System.Drawing.Point(100, 38);
-            this.buttonSelected.Name = "buttonSelected";
-            this.buttonSelected.Size = new System.Drawing.Size(75, 23);
-            this.buttonSelected.TabIndex = 0;
-            this.buttonSelected.Text = "Selected";
-            this.buttonSelected.UseVisualStyleBackColor = true;
-            this.buttonSelected.DialogResult = System.Windows.Forms.DialogResult.No;
-            this.buttonSelected.Click += new System.EventHandler(this.buttonSelected_Click);
+            // button2
+            this.button2.Location = new System.Drawing.Point(100, 38);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 0;
+            this.button2.Text = button2text;
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.DialogResult = System.Windows.Forms.DialogResult.No;
+            this.button2.Click += new System.EventHandler(this.button2_Click);
 
             // buttonCancel
             this.buttonCancel.Location = new System.Drawing.Point(187, 38);
@@ -509,12 +269,12 @@ namespace Tekla.Technology.Akit.UserScript
             this.buttonCancel.Click += new System.EventHandler(this.buttonCancel_Click);
 
             // label1
-            this.label1.Text = "Check FL-PL for:";
+            this.label1.Text = formMessage;
             this.label1.Location = new System.Drawing.Point(13, 13);
             this.label1.Size = new System.Drawing.Size(200, 20);
 
             // label2
-            this.label2.Text = "V 1.0 / 10.4.2015 / zagar.domen@gmail.com";
+            this.label2.Text = Globals.versionDate;
             this.label2.Location = new System.Drawing.Point(13, 73);
             this.label2.Size = new System.Drawing.Size(250, 20);
 
@@ -522,14 +282,14 @@ namespace Tekla.Technology.Akit.UserScript
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Name = "mainForm";
-            this.Text = "FLPL checker";
+            this.Text = Globals.appName;
 
             // holds top position
             this.TopMost = true;
             
             this.ClientSize = new System.Drawing.Size(278, 100);
-            this.Controls.Add(this.buttonAll);
-            this.Controls.Add(this.buttonSelected);
+            this.Controls.Add(this.button1);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.buttonCancel);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.label2);

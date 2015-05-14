@@ -19,3 +19,6 @@ F:\DZ-SKANDING\Visual Studio 2013\Projects\Project1\FLPL-checker\Project1\obj\De
 C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\bin\Debug\Project1.exe.config
 C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\obj\Debug\Project1.exe
 C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\obj\Debug\Project1.pdb
+C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\obj\Debug\Project1.csprojResolveAssemblyReference.cache
+C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\bin\Debug\Project1.exe
+C:\Users\domen\Documents\GitHub\phase-to-user-phase\Project1\bin\Debug\Project1.pdb
